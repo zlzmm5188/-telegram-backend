@@ -1,0 +1,1 @@
+import{j as e,O as s}from"./CNfpgpjz.js";function l(){return e.jsx("div",{className:"flex h-screen w-screen flex-col items-center justify-center",children:e.jsxs("div",{className:"w-full max-w-xs",children:[e.jsx("div",{className:"mb-4 text-2xl font-bold",children:"欢迎回来 🎉~"}),e.jsx("div",{className:"rounded-lg",children:e.jsx(s,{})})]})})}export{l as default};
