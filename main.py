@@ -119,3 +119,59 @@ async def debug_session(request: Request):
         "session_file": session_file,
         "file_exists": os.path.exists(session_file)
     }
+
+# 新增：获取session登录状态
+@app.get("/session/status")
+async def get_session_status(request: Request):
+    """检查当前子域名的Telegram登录状态"""
+    try:
+        session_file = get_session_file(request)
+        
+        # 检查session文件是否存在
+        import os
+        if not os.path.exists(session_file):
+            return {"authorized": False, "reason": "Session file not found"}
+        
+        # 检查session是否有效
+        client = TelegramClient(session_file, API_ID, API_HASH)
+        await client.connect()
+        
+        if await client.is_user_authorized():
+            me = await client.get_me()
+            await client.disconnect()
+            return {
+                "authorized": True,
+                "user": {
+                    "id": me.id,
+                    "first_name": me.first_name,
+                    "username": me.username,
+                    "phone": me.phone
+                },
+                "session_file": session_file
+            }
+        else:
+            await client.disconnect()
+            return {"authorized": False, "reason": "Session not authorized"}
+            
+    except Exception as e:
+        return {"authorized": False, "reason": str(e)}
+
+# 新增：为客户端提供连接信息
+@app.get("/session/connect_info")
+async def get_connect_info(request: Request):
+    """获取客户端连接所需的信息"""
+    try:
+        session_file = get_session_file(request)
+        host = request.headers.get("host", "localhost")
+        subdomain = host.split('.')[0] if '.' in host else 'default'
+        
+        return {
+            "subdomain": subdomain,
+            "session_file": session_file,
+            "api_id": API_ID,
+            "api_hash": API_HASH,
+            "connection_url": f"http://{host}",
+            "status_endpoint": f"http://{host}/session/status"
+        }
+    except Exception as e:
+        return {"error": str(e)}
