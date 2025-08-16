@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Web客户端</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #2196F3;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .main-content {
+            display: flex;
+            height: 600px;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: #f5f5f5;
+            border-right: 1px solid #ddd;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .connection-panel {
+            background: #fff;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1976D2;
+        }
+        
+        .btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .message .time {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .message .content {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .message.system {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .message.received {
+            background: #f1f8e9;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .message.sent {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .send-panel {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+        }
+        
+        .send-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .send-form input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .function-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .log-message {
+            font-size: 12px;
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 4px;
+            background: #f8f9fa;
+            border-left: 3px solid #007bff;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .chat-area {
+                height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔵 Telegram Web客户端</h1>
+            <p>支持多子域名会话管理的网页版Telegram客户端</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="connection-panel">
+                    <h3>连接设置</h3>
+                    
+                    <div class="form-group">
+                        <label for="subdomain">子域名:</label>
+                        <input type="text" id="subdomain" value="user1" placeholder="例如: user1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="checkStatusBtn">检查状态</button>
+                        <button class="btn btn-success" id="connectBtn">连接</button>
+                        <button class="btn btn-danger" id="disconnectBtn" disabled>断开</button>
+                    </div>
+                    
+                    <div id="status" class="status disconnected">
+                        状态: 未连接
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <h3>快速登录</h3>
+                    <div class="form-group">
+                        <label for="phone">手机号:</label>
+                        <input type="text" id="phone" placeholder="+8613800138000">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="sendCodeBtn">发送验证码</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="code">验证码:</label>
+                        <input type="text" id="code" placeholder="12345">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-success" id="verifyBtn">验证登录</button>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <h3>系统日志</h3>
+                    <div id="systemLog" style="max-height: 200px; overflow-y: auto; font-size: 12px;">
+                        <!-- 系统日志显示区域 -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-area">
+                <div class="messages" id="messages">
+                    <div class="message system">
+                        <div class="time">系统消息</div>
+                        <div class="content">
+                            <strong>欢迎使用Telegram Web客户端！</strong><br>
+                            使用步骤：<br>
+                            1. 输入子域名 (例如: user1)<br>
+                            2. 使用"快速登录"完成Telegram账号登录<br>
+                            3. 点击"连接"启动客户端<br>
+                            4. 开始发送和接收消息
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="send-panel">
+                    <div class="send-form">
+                        <input type="text" id="recipient" placeholder="收件人用户名 (例如: @username)" disabled>
+                        <input type="text" id="messageText" placeholder="输入消息内容..." disabled>
+                        <button class="btn btn-primary" id="sendBtn" disabled>发送</button>
+                    </div>
+                    
+                    <div class="function-buttons">
+                        <button class="btn btn-primary" id="getUserInfoBtn" disabled>获取用户信息</button>
+                        <button class="btn btn-primary" id="clearBtn">清空消息</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TelegramWebClient {
+            constructor() {
+                this.baseUrl = 'http://localhost:8000';
+                this.isConnected = false;
+                this.subdomain = '';
+                this.messagePollingInterval = null;
+                
+                this.initEventListeners();
+                this.logSystem('Telegram Web客户端已加载');
+            }
+            
+            initEventListeners() {
+                // 连接控制
+                document.getElementById('checkStatusBtn').addEventListener('click', () => this.checkStatus());
+                document.getElementById('connectBtn').addEventListener('click', () => this.connect());
+                document.getElementById('disconnectBtn').addEventListener('click', () => this.disconnect());
+                
+                // 登录流程
+                document.getElementById('sendCodeBtn').addEventListener('click', () => this.sendCode());
+                document.getElementById('verifyBtn').addEventListener('click', () => this.verifyCode());
+                
+                // 消息发送
+                document.getElementById('sendBtn').addEventListener('click', () => this.sendMessage());
+                document.getElementById('messageText').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.sendMessage();
+                });
+                
+                // 功能按钮
+                document.getElementById('getUserInfoBtn').addEventListener('click', () => this.getUserInfo());
+                document.getElementById('clearBtn').addEventListener('click', () => this.clearMessages());
+            }
+            
+            logSystem(message) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logDiv = document.getElementById('systemLog');
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-message';
+                logEntry.innerHTML = `[${timestamp}] ${message}`;
+                logDiv.appendChild(logEntry);
+                logDiv.scrollTop = logDiv.scrollHeight;
+                
+                // 限制日志条数
+                while (logDiv.children.length > 50) {
+                    logDiv.removeChild(logDiv.firstChild);
+                }
+            }
+            
+            addMessage(content, type = 'system') {
+                const messagesDiv = document.getElementById('messages');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}`;
+                
+                const timestamp = new Date().toLocaleTimeString();
+                messageDiv.innerHTML = `
+                    <div class="time">${timestamp}</div>
+                    <div class="content">${content}</div>
+                `;
+                
+                messagesDiv.appendChild(messageDiv);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+            
+            updateStatus(connected, message = '') {
+                const statusDiv = document.getElementById('status');
+                const connectBtn = document.getElementById('connectBtn');
+                const disconnectBtn = document.getElementById('disconnectBtn');
+                const sendInputs = ['recipient', 'messageText', 'sendBtn', 'getUserInfoBtn'];
+                
+                if (connected) {
+                    statusDiv.className = 'status connected';
+                    statusDiv.textContent = `状态: 已连接 (${this.subdomain}) ${message}`;
+                    connectBtn.disabled = true;
+                    disconnectBtn.disabled = false;
+                    sendInputs.forEach(id => document.getElementById(id).disabled = false);
+                    this.isConnected = true;
+                } else {
+                    statusDiv.className = 'status disconnected';
+                    statusDiv.textContent = `状态: 未连接 ${message}`;
+                    connectBtn.disabled = false;
+                    disconnectBtn.disabled = true;
+                    sendInputs.forEach(id => document.getElementById(id).disabled = true);
+                    this.isConnected = false;
+                }
+            }
+            
+            async makeRequest(endpoint, method = 'GET', data = null) {
+                const subdomain = document.getElementById('subdomain').value.trim() || 'default';
+                
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Host': `${subdomain}.example.com`
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                try {
+                    const response = await fetch(`${this.baseUrl}${endpoint}`, options);
+                    return await response.json();
+                } catch (error) {
+                    this.logSystem(`请求失败: ${error.message}`);
+                    throw error;
+                }
+            }
+            
+            async checkStatus() {
+                try {
+                    this.logSystem('检查API状态...');
+                    const result = await this.makeRequest('/session/status');
+                    
+                    if (result.authorized) {
+                        const user = result.user;
+                        this.logSystem(`API状态: 已授权`);
+                        this.logSystem(`用户: ${user.first_name} (@${user.username})`);
+                        this.addMessage(`API已授权: ${user.first_name} (@${user.username}) - ${user.phone}`, 'system');
+                    } else {
+                        this.logSystem(`API状态: 未授权 - ${result.reason}`);
+                        this.addMessage(`API未授权: ${result.reason}`, 'system');
+                    }
+                } catch (error) {
+                    this.logSystem(`检查状态失败: ${error.message}`);
+                }
+            }
+            
+            async sendCode() {
+                const phone = document.getElementById('phone').value.trim();
+                if (!phone) {
+                    alert('请输入手机号');
+                    return;
+                }
+                
+                try {
+                    this.logSystem('发送验证码...');
+                    const result = await this.makeRequest('/send_code', 'POST', { phone: phone });
+                    
+                    if (result.success) {
+                        this.logSystem(`验证码已发送到 ${phone}`);
+                        this.addMessage(`验证码已发送到 ${phone}`, 'system');
+                    } else {
+                        this.logSystem(`发送验证码失败: ${result.error}`);
+                        alert(`发送验证码失败: ${result.error}`);
+                    }
+                } catch (error) {
+                    this.logSystem(`发送验证码失败: ${error.message}`);
+                }
+            }
+            
+            async verifyCode() {
+                const phone = document.getElementById('phone').value.trim();
+                const code = document.getElementById('code').value.trim();
+                
+                if (!phone || !code) {
+                    alert('请输入手机号和验证码');
+                    return;
+                }
+                
+                try {
+                    this.logSystem('验证登录...');
+                    const result = await this.makeRequest('/verify', 'POST', { 
+                        phone: phone, 
+                        code: code 
+                    });
+                    
+                    if (result.success) {
+                        this.logSystem(`登录成功! Session文件: ${result.session_file}`);
+                        this.addMessage(`登录成功! 现在可以连接客户端了`, 'system');
+                        document.getElementById('code').value = '';
+                    } else {
+                        this.logSystem(`登录失败: ${result.error}`);
+                        alert(`登录失败: ${result.error}`);
+                    }
+                } catch (error) {
+                    this.logSystem(`登录失败: ${error.message}`);
+                }
+            }
+            
+            async connect() {
+                this.subdomain = document.getElementById('subdomain').value.trim();
+                if (!this.subdomain) {
+                    alert('请输入子域名');
+                    return;
+                }
+                
+                try {
+                    this.logSystem(`正在连接到子域名: ${this.subdomain}`);
+                    this.addMessage(`正在连接到子域名: ${this.subdomain}...`, 'system');
+                    
+                    // 检查连接状态
+                    const result = await this.makeRequest('/session/status');
+                    
+                    if (result.authorized) {
+                        this.updateStatus(true);
+                        this.logSystem('客户端连接成功!');
+                        this.addMessage(`连接成功! 用户: ${result.user.first_name} (@${result.user.username})`, 'system');
+                        
+                        // 开始轮询消息 (模拟实时消息接收)
+                        this.startMessagePolling();
+                    } else {
+                        throw new Error('Session未授权，请先完成登录');
+                    }
+                } catch (error) {
+                    this.logSystem(`连接失败: ${error.message}`);
+                    this.addMessage(`连接失败: ${error.message}<br>请确保已完成Telegram登录`, 'system');
+                }
+            }
+            
+            disconnect() {
+                this.updateStatus(false);
+                this.logSystem('客户端已断开连接');
+                this.addMessage('客户端已断开连接', 'system');
+                
+                if (this.messagePollingInterval) {
+                    clearInterval(this.messagePollingInterval);
+                    this.messagePollingInterval = null;
+                }
+            }
+            
+            async sendMessage() {
+                if (!this.isConnected) {
+                    alert('请先连接客户端');
+                    return;
+                }
+                
+                const recipient = document.getElementById('recipient').value.trim();
+                const message = document.getElementById('messageText').value.trim();
+                
+                if (!recipient || !message) {
+                    alert('请输入收件人和消息内容');
+                    return;
+                }
+                
+                try {
+                    this.logSystem(`发送消息给 ${recipient}: ${message}`);
+                    const result = await this.makeRequest('/send', 'POST', {
+                        username: recipient,
+                        message: message
+                    });
+                    
+                    if (result.success) {
+                        this.addMessage(`发送给 ${recipient}: ${message}`, 'sent');
+                        document.getElementById('messageText').value = '';
+                        this.logSystem('消息发送成功');
+                    } else {
+                        this.logSystem(`发送消息失败: ${result.error}`);
+                        alert(`发送消息失败: ${result.error}`);
+                    }
+                } catch (error) {
+                    this.logSystem(`发送消息失败: ${error.message}`);
+                }
+            }
+            
+            async getUserInfo() {
+                if (!this.isConnected) {
+                    alert('请先连接客户端');
+                    return;
+                }
+                
+                try {
+                    this.logSystem('获取用户信息...');
+                    const result = await this.makeRequest('/me');
+                    
+                    if (result.id) {
+                        const info = `用户信息:<br>ID: ${result.id}<br>姓名: ${result.first_name}<br>用户名: @${result.username}<br>电话: ${result.phone}`;
+                        this.addMessage(info, 'system');
+                        this.logSystem('用户信息获取成功');
+                    } else {
+                        this.logSystem(`获取用户信息失败: ${result.error}`);
+                    }
+                } catch (error) {
+                    this.logSystem(`获取用户信息失败: ${error.message}`);
+                }
+            }
+            
+            clearMessages() {
+                document.getElementById('messages').innerHTML = '';
+                this.logSystem('消息已清空');
+            }
+            
+            startMessagePolling() {
+                // 注意: 这是一个简化的消息轮询实现
+                // 实际应用中应该使用WebSocket或Server-Sent Events
+                this.logSystem('开始监听消息...');
+                
+                // 模拟接收消息 (实际应该连接到真正的Telegram消息流)
+                let messageCount = 0;
+                this.messagePollingInterval = setInterval(() => {
+                    // 这里应该是真正的消息接收逻辑
+                    // 由于WebSocket需要更复杂的后端支持，这里仅做演示
+                    if (messageCount < 1) {
+                        this.addMessage('消息监听已启动，等待接收消息...', 'system');
+                        messageCount++;
+                    }
+                }, 5000);
+            }
+        }
+        
+        // 初始化客户端
+        document.addEventListener('DOMContentLoaded', () => {
+            window.telegramClient = new TelegramWebClient();
+        });
+    </script>
+</body>
+</html>
