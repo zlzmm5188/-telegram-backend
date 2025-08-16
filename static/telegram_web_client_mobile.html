@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📱 Telegram手机客户端</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #2196F3 0%, #21CBF3 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .tabs {
+            display: flex;
+            background: #f5f5f5;
+        }
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: #f5f5f5;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .tab.active {
+            background: white;
+            color: #2196F3;
+            border-bottom: 2px solid #2196F3;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #2196F3;
+            box-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #2196F3;
+            color: white;
+        }
+        .btn-primary:hover, .btn-primary:active {
+            background: #1976D2;
+            transform: translateY(-1px);
+        }
+        .btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+        .btn-success:hover, .btn-success:active {
+            background: #45a049;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status-card {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #2196F3;
+        }
+        .status-disconnected {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            color: #856404;
+        }
+        .status-connected {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+        .status-error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+        .messages {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            font-size: 14px;
+        }
+        .message-time {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .send-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .send-form input {
+            flex: 1;
+        }
+        .send-form button {
+            width: auto;
+            padding: 12px 20px;
+            margin: 0;
+        }
+        .api-info {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 12px;
+            color: #1565c0;
+        }
+        .warning {
+            background: #fff3e0;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #ff9800;
+            font-size: 13px;
+        }
+        @media (max-width: 480px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            .header {
+                padding: 10px;
+            }
+            .tab-content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 Telegram多会话客户端</h1>
+            <p>手机端测试版 - 支持API配置</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('login')">🔐 登录</button>
+            <button class="tab" onclick="switchTab('chat')">💬 聊天</button>
+            <button class="tab" onclick="switchTab('config')">⚙️ 配置</button>
+        </div>
+        
+        <!-- 登录标签页 -->
+        <div id="login" class="tab-content active">
+            <div class="form-group">
+                <label for="subdomain">💼 会话标识 (子域名):</label>
+                <input type="text" id="subdomain" value="mobile1" placeholder="例如: mobile1, user2">
+                <small style="color: #666; font-size: 12px;">每个标识对应独立的Telegram会话</small>
+            </div>
+            
+            <button class="btn btn-primary" onclick="checkStatus()">🔍 检查登录状态</button>
+            
+            <div id="loginSection">
+                <h3 style="margin: 20px 0 10px 0;">📱 快速登录</h3>
+                <div class="form-group">
+                    <label for="phone">手机号:</label>
+                    <input type="tel" id="phone" placeholder="+8613800138000">
+                </div>
+                <button class="btn btn-primary" onclick="sendCode()">📤 发送验证码</button>
+                
+                <div class="form-group">
+                    <label for="code">验证码:</label>
+                    <input type="text" id="code" placeholder="12345" maxlength="5">
+                </div>
+                <button class="btn btn-success" onclick="verifyCode()">✅ 验证登录</button>
+            </div>
+            
+            <div id="status" class="status-card status-disconnected">
+                📊 状态: 未连接 - 请先检查状态或完成登录
+            </div>
+        </div>
+        
+        <!-- 聊天标签页 -->
+        <div id="chat" class="tab-content">
+            <button class="btn btn-primary" onclick="getUserInfo()" id="getUserInfoBtn">👤 获取我的信息</button>
+            
+            <div class="messages" id="messages">
+                <div class="message">
+                    <div class="message-time">系统消息</div>
+                    <strong>📱 欢迎使用手机版Telegram客户端！</strong><br>
+                    ✅ 支持多会话管理<br>
+                    ✅ 避免账号掉号<br>
+                    ✅ 手机端优化<br>
+                    ✅ 实时API配置
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="recipient">📬 收件人用户名:</label>
+                <input type="text" id="recipient" placeholder="username (不带@)">
+            </div>
+            
+            <div class="send-form">
+                <input type="text" id="messageText" placeholder="输入消息内容...">
+                <button class="btn btn-primary" onclick="sendMessage()">📤</button>
+            </div>
+        </div>
+        
+        <!-- 配置标签页 -->
+        <div id="config" class="tab-content">
+            <h3>🔑 API凭据配置</h3>
+            
+            <div class="warning">
+                <strong>⚠️ 重要提醒:</strong><br>
+                当前使用的是默认测试凭据，可能会有限制。建议配置您自己的API凭据以获得更好的体验。
+            </div>
+            
+            <div id="currentApiInfo" class="api-info">
+                正在加载当前API配置...
+            </div>
+            
+            <div class="form-group">
+                <label for="apiId">🆔 API ID:</label>
+                <input type="number" id="apiId" placeholder="从 my.telegram.org 获取">
+            </div>
+            
+            <div class="form-group">
+                <label for="apiHash">🔐 API Hash:</label>
+                <input type="text" id="apiHash" placeholder="从 my.telegram.org 获取">
+            </div>
+            
+            <button class="btn btn-success" onclick="updateApiConfig()">💾 保存API配置</button>
+            
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <h4>📖 如何获取API凭据？</h4>
+                <ol style="font-size: 13px; line-height: 1.6;">
+                    <li>访问 <a href="https://my.telegram.org" target="_blank">my.telegram.org</a></li>
+                    <li>使用您的手机号登录</li>
+                    <li>进入 "API development tools"</li>
+                    <li>创建新应用，获取 API ID 和 API Hash</li>
+                    <li>在上方输入并保存</li>
+                </ol>
+            </div>
+            
+            <button class="btn btn-primary" onclick="refreshApiInfo()" style="margin-top: 15px;">🔄 刷新API信息</button>
+        </div>
+    </div>
+
+    <script>
+        const baseUrl = window.location.origin;
+        
+        // 标签页切换
+        function switchTab(tabName) {
+            // 隐藏所有标签页内容
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的标签页
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        // 添加消息到聊天区
+        function addMessage(content, type = 'system') {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = `
+                <div class="message-time">${new Date().toLocaleTimeString()}</div>
+                <div>${content}</div>
+            `;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        // 发送API请求
+        async function makeRequest(endpoint, method = 'GET', data = null) {
+            const subdomain = document.getElementById('subdomain').value.trim() || 'default';
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Host': `${subdomain}.example.com`
+                }
+            };
+            if (data) options.body = JSON.stringify(data);
+            
+            try {
+                const response = await fetch(`${baseUrl}${endpoint}`, options);
+                return await response.json();
+            } catch (error) {
+                throw new Error(`网络请求失败: ${error.message}`);
+            }
+        }
+        
+        // 更新状态显示
+        function updateStatus(message, type = 'disconnected') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-card status-${type}`;
+        }
+        
+        // 检查登录状态
+        async function checkStatus() {
+            try {
+                updateStatus('🔄 正在检查状态...', 'disconnected');
+                const result = await makeRequest('/session/status');
+                
+                if (result.authorized) {
+                    updateStatus(`✅ 已连接 - ${result.user.first_name} (@${result.user.username || '无用户名'})`, 'connected');
+                    addMessage(`🎉 连接成功: ${result.user.first_name}`);
+                } else {
+                    updateStatus(`❌ 未授权 - ${result.reason}`, 'error');
+                    addMessage(`⚠️ 未授权: ${result.reason}`);
+                }
+            } catch (error) {
+                updateStatus(`🔴 检查失败: ${error.message}`, 'error');
+                addMessage(`🔴 检查状态失败: ${error.message}`);
+            }
+        }
+        
+        // 发送验证码
+        async function sendCode() {
+            const phone = document.getElementById('phone').value.trim();
+            if (!phone) {
+                alert('请输入手机号');
+                return;
+            }
+            
+            try {
+                addMessage(`📤 向 ${phone} 发送验证码...`);
+                const result = await makeRequest('/send_code', 'POST', { phone });
+                
+                if (result.success) {
+                    addMessage(`✅ 验证码已发送到 ${phone}`);
+                    updateStatus('📱 验证码已发送，请输入验证码', 'disconnected');
+                } else {
+                    addMessage(`❌ 发送失败: ${result.error}`);
+                    updateStatus(`❌ 发送失败: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                addMessage(`🔴 发送验证码失败: ${error.message}`);
+                updateStatus(`🔴 发送失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 验证登录
+        async function verifyCode() {
+            const phone = document.getElementById('phone').value.trim();
+            const code = document.getElementById('code').value.trim();
+            
+            if (!phone || !code) {
+                alert('请输入手机号和验证码');
+                return;
+            }
+            
+            try {
+                addMessage('🔐 验证登录中...');
+                updateStatus('🔐 正在验证...', 'disconnected');
+                
+                const result = await makeRequest('/verify', 'POST', { phone, code });
+                
+                if (result.success) {
+                    addMessage('🎉 登录成功！可以开始使用了');
+                    updateStatus('🎉 登录成功！', 'connected');
+                    document.getElementById('code').value = '';
+                    
+                    // 自动检查状态获取用户信息
+                    setTimeout(checkStatus, 1000);
+                } else {
+                    addMessage(`❌ 登录失败: ${result.error}`);
+                    updateStatus(`❌ 登录失败: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                addMessage(`🔴 登录失败: ${error.message}`);
+                updateStatus(`🔴 登录失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 发送消息
+        async function sendMessage() {
+            const recipient = document.getElementById('recipient').value.trim();
+            const message = document.getElementById('messageText').value.trim();
+            
+            if (!recipient || !message) {
+                alert('请输入收件人和消息内容');
+                return;
+            }
+            
+            try {
+                const result = await makeRequest('/send', 'POST', { username: recipient, message });
+                
+                if (result.success) {
+                    addMessage(`📤 发送给 @${recipient}: ${message}`);
+                    document.getElementById('messageText').value = '';
+                } else {
+                    addMessage(`❌ 发送失败: ${result.error}`);
+                }
+            } catch (error) {
+                addMessage(`🔴 发送失败: ${error.message}`);
+            }
+        }
+        
+        // 获取用户信息
+        async function getUserInfo() {
+            try {
+                const result = await makeRequest('/me');
+                
+                if (result.id) {
+                    addMessage(`👤 用户信息: ${result.first_name} (@${result.username || '无用户名'}) - ${result.phone}`);
+                } else {
+                    addMessage(`❌ 获取用户信息失败: ${result.error}`);
+                }
+            } catch (error) {
+                addMessage(`🔴 获取用户信息失败: ${error.message}`);
+            }
+        }
+        
+        // 刷新API信息
+        async function refreshApiInfo() {
+            try {
+                const result = await makeRequest('/config/api');
+                const infoDiv = document.getElementById('currentApiInfo');
+                
+                infoDiv.innerHTML = `
+                    <strong>当前API配置:</strong><br>
+                    📊 API ID: ${result.api_id}<br>
+                    🔐 API Hash: ${result.api_hash_preview}<br>
+                    📍 来源: ${result.source === 'custom' ? '自定义配置' : '默认配置'}
+                `;
+            } catch (error) {
+                document.getElementById('currentApiInfo').textContent = `获取API信息失败: ${error.message}`;
+            }
+        }
+        
+        // 更新API配置
+        async function updateApiConfig() {
+            const apiId = document.getElementById('apiId').value.trim();
+            const apiHash = document.getElementById('apiHash').value.trim();
+            
+            if (!apiId || !apiHash) {
+                alert('请输入完整的API ID和API Hash');
+                return;
+            }
+            
+            try {
+                const result = await makeRequest('/config/api', 'POST', {
+                    api_id: parseInt(apiId),
+                    api_hash: apiHash
+                });
+                
+                if (result.success) {
+                    addMessage('✅ API配置更新成功！');
+                    refreshApiInfo();
+                    document.getElementById('apiId').value = '';
+                    document.getElementById('apiHash').value = '';
+                } else {
+                    addMessage(`❌ API配置更新失败: ${result.error}`);
+                }
+            } catch (error) {
+                addMessage(`🔴 更新API配置失败: ${error.message}`);
+            }
+        }
+        
+        // 回车发送消息
+        document.getElementById('messageText').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // 页面加载时刷新API信息
+        window.addEventListener('load', () => {
+            refreshApiInfo();
+            addMessage('📱 手机客户端已加载，请先检查登录状态或完成登录');
+        });
+    </script>
+</body>
+</html>

@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from telethon import TelegramClient
 import hashlib
@@ -15,6 +17,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 添加静态文件服务
+app.mount("/static", StaticFiles(directory="/workspace/static"), name="static")
 
 # 支持多种API凭据配置方式
 def get_api_credentials():
@@ -94,8 +99,18 @@ async def root():
         "message": "Telegram多会话客户端API",
         "api_id": API_ID,
         "version": "1.0.0",
-        "features": ["多会话管理", "会话隔离", "避免掉号"]
+        "features": ["多会话管理", "会话隔离", "避免掉号"],
+        "mobile_client": "/mobile"
     }
+
+@app.get("/mobile", response_class=HTMLResponse)
+async def mobile_client():
+    """移动端客户端页面"""
+    try:
+        with open('/workspace/telegram_web_client_mobile.html', 'r', encoding='utf-8') as f:
+            return HTMLResponse(content=f.read())
+    except FileNotFoundError:
+        return HTMLResponse(content="<h1>移动端客户端页面未找到</h1>", status_code=404)
 
 @app.post("/config/api")
 async def update_api_config(config: ConfigModel):
