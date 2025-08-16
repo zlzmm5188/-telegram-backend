@@ -93,8 +93,26 @@ class ConfigModel(BaseModel):
     api_id: int
     api_hash: str
 
-@app.get("/")
-async def root():
+@app.get("/", response_class=HTMLResponse)
+async def homepage():
+    """主页"""
+    try:
+        with open('/workspace/index.html', 'r', encoding='utf-8') as f:
+            return HTMLResponse(content=f.read())
+    except FileNotFoundError:
+        return HTMLResponse(content="""
+        <html>
+        <head><title>Telegram客户端</title></head>
+        <body>
+            <h1>📱 Telegram多会话客户端</h1>
+            <p><a href="/mobile">🚀 进入移动端客户端</a></p>
+            <p><a href="/api/docs">📚 API文档</a></p>
+        </body>
+        </html>
+        """)
+
+@app.get("/api", response_class=HTMLResponse)
+async def api_info():
     return {
         "message": "Telegram多会话客户端API",
         "api_id": API_ID,
