@@ -1,0 +1,9 @@
+[2025-09-07T00:56:46.042Z] info  Wrote default config file to /home/ubuntu/.config/code-server/config.yaml
+[2025-09-07T00:56:46.200Z] info  code-server 4.103.2 54b33a75e0b4593b77f9a217323c4b27a42f4073
+[2025-09-07T00:56:46.201Z] info  Using user-data-dir /home/ubuntu/.local/share/code-server
+[2025-09-07T00:56:46.210Z] info  Using config file /home/ubuntu/.config/code-server/config.yaml
+[2025-09-07T00:56:46.210Z] info  HTTP server listening on http://127.0.0.1:8040/
+[2025-09-07T00:56:46.210Z] info    - Authentication is enabled
+[2025-09-07T00:56:46.210Z] info      - Using password from /home/ubuntu/.config/code-server/config.yaml
+[2025-09-07T00:56:46.210Z] info    - Not serving HTTPS
+[2025-09-07T00:56:46.210Z] info  Session server listening on /home/ubuntu/.local/share/code-server/code-server-ipc.sock
