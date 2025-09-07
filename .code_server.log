@@ -7,3 +7,11 @@
 [2025-09-07T00:56:46.210Z] info      - Using password from /home/ubuntu/.config/code-server/config.yaml
 [2025-09-07T00:56:46.210Z] info    - Not serving HTTPS
 [2025-09-07T00:56:46.210Z] info  Session server listening on /home/ubuntu/.local/share/code-server/code-server-ipc.sock
+[00:59:20] 
+
+
+
+
+[00:59:20] Extension host agent started.
+[00:59:20] Started initializing default profile extensions in extensions installation folder. file:///home/ubuntu/.local/share/code-server/extensions
+[00:59:20] Completed initializing default profile extensions in extensions installation folder. file:///home/ubuntu/.local/share/code-server/extensions
